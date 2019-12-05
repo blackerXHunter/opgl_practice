@@ -10,13 +10,14 @@
 #include <iostream>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-
+#include "Shader.h"
+void Console();
  // 三角形的顶点数据
-const float triangle[] = {
-	//     ---- 位置 ----    
-		 -0.5f, -0.5f, 0.0f,   // 左下
-		  0.5f, -0.5f, 0.0f,   // 右下
-		  0.0f,  0.5f, 0.0f    // 正上
+float vertices[] = {
+    // 位置              // 颜色
+     0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // 右下
+    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // 左下
+     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 顶部
 };
 
 // 屏幕宽，高
@@ -24,6 +25,8 @@ int screen_width = 1280;
 int screen_height = 720;
 
 int main() {
+
+
 	// 初始化GLFW
 	glfwInit();                                                     // 初始化GLFW
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);                  // OpenGL版本为3.3，主次版本号均设为3
@@ -47,10 +50,14 @@ int main() {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+	Console();
+
+	// build and compile our shader program
+	// ------------------------------------
+	Shader ourShader("shader.vs", "shader.fs"); // you can name your shader files however you like
 
 	// 指定当前视口尺寸(前两个参数为左下角位置，后两个参数是渲染窗口宽、高)
 	glViewport(0, 0, screen_width, screen_height);
-
 	// 生成并绑定VAO和VBO
 	GLuint vertex_array_object; // == VAO
 	glGenVertexArrays(1, &vertex_array_object);
@@ -60,30 +67,37 @@ int main() {
 	glGenBuffers(1, &vertex_buffer_object);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object);
 	// 将顶点数据绑定至当前默认的缓冲中
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// 设置顶点属性指针
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	// 解绑VAO和VBO
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+	/*
 	// 顶点着色器和片段着色器源码
 	const char* vertex_shader_source =
 		"#version 330 core\n"
 		"layout (location = 0) in vec3 aPos;\n"           // 位置变量的属性位置值为0
+		"layout (location = 1) in vec3 aColor;\n"
+		"out vec3 ourColor;\n"
 		"void main()\n"
 		"{\n"
-		"    gl_Position = vec4(aPos, 1.0);\n"
+		"   gl_Position = vec4(aPos, 1.0);\n"
+		"	ourColor = aColor;\n"
 		"}\n\0";
 	const char* fragment_shader_source =
 		"#version 330 core\n"
 		"out vec4 FragColor;\n"                           // 输出的颜色向量
+		"in vec3 ourColor;\n"
 		"void main()\n"
 		"{\n"
-		"    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+		"    FragColor = vec4(ourColor, 1.0f);\n"
 		"}\n\0";
 
 	// 生成并编译着色器
@@ -125,7 +139,7 @@ int main() {
 	// 删除着色器
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
-
+	*/
 	// 线框模式
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -137,7 +151,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// 使用着色器程序
-		glUseProgram(shader_program);
+		ourShader.use();
 
 		// 绘制三角形
 		glBindVertexArray(vertex_array_object);                                    // 绑定VAO
@@ -156,4 +170,10 @@ int main() {
 	// 清理所有的资源并正确退出程序
 	glfwTerminate();
 	return 0;
+}
+
+void Console() {
+	int nrAttributes;
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+	std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
 }
