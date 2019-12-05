@@ -152,7 +152,7 @@ int main() {
 
 		// 使用着色器程序
 		ourShader.use();
-
+		ourShader.setFloat("offset", sin(glfwGetTime()) / 2 + 0.5f);
 		// 绘制三角形
 		glBindVertexArray(vertex_array_object);                                    // 绑定VAO
 		glDrawArrays(GL_TRIANGLES, 0, 3);                                          // 绘制三角形
