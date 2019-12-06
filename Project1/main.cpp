@@ -11,18 +11,24 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "Shader.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 void Console();
- // 三角形的顶点数据
+// 三角形的顶点数据
 float vertices[] = {
-    // 位置              // 颜色
-     0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // 右下
-    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // 左下
-     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 顶部
+	//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
+		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
+		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
 };
-
+unsigned int indices[] = { // 注意索引从0开始! 
+	0, 1, 3, // 第一个三角形
+	1, 2, 3  // 第二个三角形
+};
 // 屏幕宽，高
-int screen_width = 1280;
-int screen_height = 720;
+int screen_width = 1600;
+int screen_height = 1000;
 
 int main() {
 
@@ -52,94 +58,66 @@ int main() {
 	}
 	Console();
 
+	// Load Texture
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+
+	stbi_image_free(data);
+
 	// build and compile our shader program
 	// ------------------------------------
 	Shader ourShader("shader.vs", "shader.fs"); // you can name your shader files however you like
 
 	// 指定当前视口尺寸(前两个参数为左下角位置，后两个参数是渲染窗口宽、高)
 	glViewport(0, 0, screen_width, screen_height);
-	// 生成并绑定VAO和VBO
-	GLuint vertex_array_object; // == VAO
-	glGenVertexArrays(1, &vertex_array_object);
-	glBindVertexArray(vertex_array_object);
+	// 生成并绑定VAO VBO EBO
+	GLuint VAO; // == VAO
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 
-	GLuint vertex_buffer_object; // == VBO
-	glGenBuffers(1, &vertex_buffer_object);
-	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object);
+
+	GLuint VBO; // == VBO
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	unsigned int EBO; // == EBO
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	// 将顶点数据绑定至当前默认的缓冲中
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// 设置顶点属性指针
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 	// 解绑VAO和VBO
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	/*
-	// 顶点着色器和片段着色器源码
-	const char* vertex_shader_source =
-		"#version 330 core\n"
-		"layout (location = 0) in vec3 aPos;\n"           // 位置变量的属性位置值为0
-		"layout (location = 1) in vec3 aColor;\n"
-		"out vec3 ourColor;\n"
-		"void main()\n"
-		"{\n"
-		"   gl_Position = vec4(aPos, 1.0);\n"
-		"	ourColor = aColor;\n"
-		"}\n\0";
-	const char* fragment_shader_source =
-		"#version 330 core\n"
-		"out vec4 FragColor;\n"                           // 输出的颜色向量
-		"in vec3 ourColor;\n"
-		"void main()\n"
-		"{\n"
-		"    FragColor = vec4(ourColor, 1.0f);\n"
-		"}\n\0";
-
-	// 生成并编译着色器
-	// 顶点着色器
-	int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
-	glCompileShader(vertex_shader);
-	int success;
-	char info_log[512];
-	// 检查着色器是否成功编译，如果编译失败，打印错误信息
-	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << info_log << std::endl;
-	}
-	// 片段着色器
-	int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
-	glCompileShader(fragment_shader);
-	// 检查着色器是否成功编译，如果编译失败，打印错误信息
-	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << info_log << std::endl;
-	}
-	// 链接顶点和片段着色器至一个着色器程序
-	int shader_program = glCreateProgram();
-	glAttachShader(shader_program, vertex_shader);
-	glAttachShader(shader_program, fragment_shader);
-	glLinkProgram(shader_program);
-	// 检查着色器是否成功链接，如果链接失败，打印错误信息
-	glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shader_program, 512, NULL, info_log);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << info_log << std::endl;
-	}
-	// 删除着色器
-	glDeleteShader(vertex_shader);
-	glDeleteShader(fragment_shader);
-	*/
 	// 线框模式
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -152,10 +130,10 @@ int main() {
 
 		// 使用着色器程序
 		ourShader.use();
-		ourShader.setFloat("offset", sin(glfwGetTime()) / 2 + 0.5f);
+		ourShader.setFloat("offset", 0.0f);
 		// 绘制三角形
-		glBindVertexArray(vertex_array_object);                                    // 绑定VAO
-		glDrawArrays(GL_TRIANGLES, 0, 3);                                          // 绘制三角形
+		glBindVertexArray(VAO);                                    // 绑定VAO
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);                                                      // 解除绑定
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
@@ -163,9 +141,10 @@ int main() {
 		glfwPollEvents();
 	}
 
-	// 删除VAO和VBO
-	glDeleteVertexArrays(1, &vertex_array_object);
-	glDeleteBuffers(1, &vertex_buffer_object);
+	// 删除VAO和VBO EBO
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 
 	// 清理所有的资源并正确退出程序
 	glfwTerminate();
