@@ -13,7 +13,12 @@
 #include "Shader.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 void Console();
+void Test();
 // 三角形的顶点数据
 float vertices[] = {
 	//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
@@ -22,16 +27,20 @@ float vertices[] = {
 		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
 		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
 };
+
 unsigned int indices[] = { // 注意索引从0开始! 
 	0, 1, 3, // 第一个三角形
 	1, 2, 3  // 第二个三角形
 };
+
 // 屏幕宽，高
 int screen_width = 1600;
 int screen_height = 1000;
 
 int main() {
 
+	//Test();
+	//return 0;
 
 	// 初始化GLFW
 	glfwInit();                                                     // 初始化GLFW
@@ -158,6 +167,7 @@ int main() {
 	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
 	// or set it via the texture class
 	ourShader.setInt("texture2", 1);
+	
 
 	// 渲染循环
 	while (!glfwWindowShouldClose(window)) {
@@ -172,6 +182,28 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		// 使用着色器程序
 		ourShader.use();
+
+		// Transform 
+		glm::mat4 trans = glm::mat4(1.0f);
+		//trans = glm::scale(trans, glm::vec3(0.5f, 0.5f, 0.5f));
+		trans = glm::rotate(trans,(float) glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+		trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
+		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+		// 绘制三角形
+		glBindVertexArray(VAO);                                    // 绑定VAO
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);                                                      // 解除绑定
+
+		// Transform 
+		trans = glm::mat4(1.0f);
+		//trans = glm::scale(trans, glm::vec3(0.5f, 0.5f, 0.5f));
+		trans = glm::scale(trans, glm::vec3( glm::sin( (float)glfwGetTime()))/2.0f +0.5f);
+		trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
+		transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
 		// 绘制三角形
 		glBindVertexArray(VAO);                                    // 绑定VAO
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -196,4 +228,19 @@ void Console() {
 	int nrAttributes;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
 	std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
+}
+
+void Test() {
+	glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+	vec = trans * vec;
+	std::cout << vec.x << vec.y << vec.z << std::endl;
+
+	glm::mat4 trans2 = glm::mat4(1.0f);
+	trans2 = glm::rotate(trans2, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0f));
+	trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
+
+	std::getchar();
 }

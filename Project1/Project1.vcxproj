@@ -70,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\kurapika\Documents\OpenGL\glad\include;C:\Users\kurapika\Documents\OpenGL\glfw-3.3.bin.WIN32\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\kurapika\Documents\OpenGL\glm;C:\Users\kurapika\Documents\OpenGL\glad\include;C:\Users\kurapika\Documents\OpenGL\glfw-3.3.bin.WIN32\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\kurapika\Documents\OpenGL\glfw-3.3.bin.WIN32\lib-vc2017;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -134,7 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\..\OpenGL\glad\src\glad.c" />
+    <ClCompile Include="..\..\..\OpenGL\glad\src\glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>

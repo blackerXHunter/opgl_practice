@@ -18,10 +18,10 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\..\OpenGL\glad\src\glad.c">
+    <ClCompile Include="Shader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
+    <ClCompile Include="..\..\..\OpenGL\glad\src\glad.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
