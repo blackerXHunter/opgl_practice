@@ -19,6 +19,9 @@
 #include <glm/gtc/type_ptr.hpp>
 void Console();
 void Test();
+void processInput(GLFWwindow* window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 // 三角形的顶点数据
 float vertices[] = {
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -67,7 +70,8 @@ unsigned int indices[] = { // 注意索引从0开始!
 	0, 1, 3, // 第一个三角形
 	1, 2, 3  // 第二个三角形
 };
-
+float deltaTime = 0.0f; // 当前帧与上一帧的时间差
+float lastFrame = 0.0f; // 上一帧的时间
 glm::vec3 cubePositions[] = {
   glm::vec3(0.0f,  0.0f,  0.0f),
   glm::vec3(2.0f,  5.0f, -15.0f),
@@ -81,9 +85,20 @@ glm::vec3 cubePositions[] = {
   glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 // 屏幕宽，高
 int screen_width = 1600;
 int screen_height = 1000;
+
+float lastX = 400, lastY = 300;
+
+float pitch = 0, yaw = 0;
+
+bool firstMouse = true;
+
+float fov = 45.0f;
 
 int main() {
 
@@ -106,6 +121,9 @@ int main() {
 		return -1;
 	}
 	glfwMakeContextCurrent(window);                                 // 将窗口的上下文设置为当前线程的主上下文
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 	// 初始化GLAD，加载OpenGL函数指针地址的函数
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -114,7 +132,6 @@ int main() {
 		return -1;
 	}
 	Console();
-
 	// Load Texture
 
 
@@ -222,15 +239,18 @@ int main() {
 
 	// 渲染循环
 	while (!glfwWindowShouldClose(window)) {
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// 清空颜色缓冲
 		glClearColor(0.0f, 0.34f, 0.57f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
+		processInput(window);
 		// 使用着色器程序
 		ourShader.use();
 
@@ -239,14 +259,18 @@ int main() {
 		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 		ourShader.setMat4("model", model);
 
+
 		glm::mat4 view = glm::mat4(1.0f);
-		// 注意，我们将矩阵向我们要进行移动场景的反方向移动。
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-		//view = glm::translate(view, glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::vec3 front = glm::vec3(0.0f);
+		front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+		front.y = sin(glm::radians(pitch));
+		front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+		cameraFront = glm::normalize(front);
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		ourShader.setMat4("view", view);
 
 		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(45.0f), (float) screen_width / (float) screen_height , 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(fov), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
 		ourShader.setMat4("projection", projection);
 
 
@@ -300,4 +324,51 @@ void Test() {
 
 
 	std::getchar();
+}
+
+void processInput(GLFWwindow* window)
+{
+	float cameraSpeed = 2.5f * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+	if (firstMouse) // 这个bool变量初始时是设定为true的
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // 注意这里是相反的，因为y坐标是从底部往顶部依次增大的
+	lastX = xpos;
+	lastY = ypos;
+
+	float sensitivity = 0.05f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if (fov >= 1.0f && fov <= 45.0f)
+		fov -= yoffset;
+	if (fov <= 1.0f)
+		fov = 1.0f;
+	if (fov >= 45.0f)
+		fov = 45.0f;
 }
