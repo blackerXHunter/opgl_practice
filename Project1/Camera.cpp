@@ -6,11 +6,12 @@ Camera::Camera()
 
 void Camera::processInput(GLFWwindow* window, float deltaTime)
 {
+	glm::vec3 myFront = glm::vec3(cameraFront.x, 0.0f, cameraFront.z);
 	float cameraSpeed = 2.5f * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += cameraSpeed * glm::vec3(0.0f, 0.0f, -1.0f);
+		cameraPos += cameraSpeed * myFront;
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos -= cameraSpeed * glm::vec3(0.0f, 0.0f, -1.0f);
+		cameraPos -= cameraSpeed * myFront;
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
