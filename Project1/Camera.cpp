@@ -69,3 +69,8 @@ float Camera::get_fov()
 {
 	return fov;
 }
+
+glm::vec3 Camera::get_pos()
+{
+	return cameraPos;
+}

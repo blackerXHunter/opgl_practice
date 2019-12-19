@@ -14,6 +14,7 @@ public:
 	void scroll_callback(GLFWwindow* window, float xoffset, float yoffset);
 	glm::mat4 get_view();
 	float get_fov();
+	glm::vec3 get_pos();
 
 private:
 
