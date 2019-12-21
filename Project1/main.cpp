@@ -167,10 +167,23 @@ int main() {
 		// 使用着色器程序
 		// be sure to activate shader when setting uniforms/drawing objects
 		lightingShader.use();
-		lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-		lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-		lightingShader.setVec3("lightPos", lightPos);
+		//lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 		lightingShader.setVec3("viewPos", camera.get_pos());
+
+		// Set Phong Lighting Model
+		lightingShader.setVec3("material.ambient", 0.0f, 0.1f, 0.06f);
+		lightingShader.setVec3("material.diffuse", 0.0f, 0.50980392f, 0.50980392f);
+		lightingShader.setVec3("material.specular", 0.50196078f, 0.50196078f, 0.50196078f);
+		lightingShader.setFloat("material.shininess", 32.0f);
+
+
+		lightingShader.setVec3("light.position", lightPos);
+		//lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+		//lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // 将光照调暗了一些以搭配场景
+		//lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+		lightingShader.setVec3("light.ambient", glm::vec3(1.0f));
+		lightingShader.setVec3("light.diffuse", glm::vec3(1.0f)); // 将光照调暗了一些以搭配场景
+		lightingShader.setVec3("light.specular", glm::vec3(1.0f));
 
 		// view/projection transformations
 
