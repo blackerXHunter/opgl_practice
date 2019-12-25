@@ -85,6 +85,13 @@ glm::vec3 cubePositions[] = {
 	glm::vec3(1.5f,  0.2f, -1.5f),
 	glm::vec3(-1.3f,  1.0f, -1.5f)
 };
+
+glm::vec3 pointLightPositions[] = {
+	glm::vec3(0.7f,  0.2f,  2.0f),
+	glm::vec3(2.3f, -3.3f, -4.0f),
+	glm::vec3(-4.0f,  2.0f, -12.0f),
+	glm::vec3(0.0f,  0.0f, -3.0f)
+};
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
@@ -189,21 +196,38 @@ int main() {
 
 		lightingShader.use();
 		lightingShader.setVec3("viewPos", camera.get_pos());
-		//lightingShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
-		lightingShader.setVec3("light.position", lightPos);
 
-		//lightingShader.setFloat("light.constant", 1.0f);
-		//lightingShader.setFloat("light.linear", 0.09f);
-		//lightingShader.setFloat("light.quadratic", 0.032f);
-		
-		lightingShader.setVec3("light.position", camera.get_pos());
-		lightingShader.setVec3("light.direction", camera.get_front());
-		lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-		lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
-		
-		lightingShader.setVec3("light.ambient", glm::vec3(1.0f));
-		lightingShader.setVec3("light.diffuse", glm::vec3(1.0f)); // 将光照调暗了一些以搭配场景
-		lightingShader.setVec3("light.specular", glm::vec3(1.0f));
+		lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+		lightingShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+		lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+		lightingShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+		for (size_t i = 0; i < sizeof(pointLightPositions); i++)
+		{
+			std::stringstream ss;
+			ss << "pointLights[" << i << "].";
+			std::string frontStr = ss.str();
+			lightingShader.setVec3(frontStr + "position", pointLightPositions[i]);
+			lightingShader.setVec3(frontStr + "ambient", 0.05f, 0.05f, 0.05f);
+			lightingShader.setVec3(frontStr + "diffuse", 0.8f, 0.8f, 0.8f);
+			lightingShader.setVec3(frontStr + "specular", 1.0f, 1.0f, 1.0f);
+			lightingShader.setFloat(frontStr + "constant", 1.0f);
+			lightingShader.setFloat(frontStr + "linear", 0.09);
+			lightingShader.setFloat(frontStr + "quadratic", 0.032);
+		}
+
+		lightingShader.setVec3("spotLight.position", camera.get_pos());
+		lightingShader.setVec3("spotLight.direction", camera.get_front());
+		lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+		lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+
+		lightingShader.setFloat("spotLight.constant", 1.0f);
+		lightingShader.setFloat("spotLight.linear", 0.09);
+		lightingShader.setFloat("spotLight.quadratic", 0.032);
+
+		lightingShader.setVec3("spotLight.ambient", glm::vec3(1.0f));
+		lightingShader.setVec3("spotLight.diffuse", glm::vec3(1.0f)); // 将光照调暗了一些以搭配场景
+		lightingShader.setVec3("spotLight.specular", glm::vec3(1.0f));
 
 		lightingShader.setFloat("material.shininess", 64.0f);
 
@@ -214,10 +238,7 @@ int main() {
 		lightingShader.setMat4("projection", projection);
 		lightingShader.setMat4("view", view);
 
-		// world transformation
-		//glm::mat4 model = glm::mat4(1.0f);
-		//lightingShader.setMat4("model", model);
-		// bind diffuse map
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
 
@@ -248,13 +269,19 @@ int main() {
 		lampShader.use();
 		lampShader.setMat4("projection", projection);
 		lampShader.setMat4("view", view);
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-		lampShader.setMat4("model", model);
+		
+
+
 
 		glBindVertexArray(lightVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		for (size_t i = 0; i < sizeof(pointLightPositions); i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, pointLightPositions[i]);
+			model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+			lampShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
