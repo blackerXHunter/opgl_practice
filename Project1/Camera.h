@@ -13,13 +13,13 @@ public:
 	void mouse_callback(GLFWwindow* window, float xpos, float ypos);
 	void scroll_callback(GLFWwindow* window, float xoffset, float yoffset);
 	glm::mat4 get_view();
-	float get_fov();
-	glm::vec3 get_pos();
+	float get_fov() const;
+	glm::vec3 get_pos() const;
+	glm::vec3 get_front() const;
 
 private:
 
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	float camera_speed = 2.5f;
 	float pitch = 0, yaw = 0;
