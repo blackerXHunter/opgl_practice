@@ -184,12 +184,17 @@ int main() {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.0f, 0.34f, 0.57f, 1.0f);
-		lightPos += glm::vec3(0.1f, 0, 0) * (float)cos(glfwGetTime());
+		//lightPos += glm::vec3(0.1f, 0, 0) * (float)cos(glfwGetTime());
 		// 使用着色器程序
 
 		lightingShader.use();
 		lightingShader.setVec3("viewPos", camera.get_pos());
-		lightingShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
+		//lightingShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
+		lightingShader.setVec3("light.position", lightPos);
+
+		lightingShader.setFloat("light.constant", 1.0f);
+		lightingShader.setFloat("light.linear", 0.09f);
+		lightingShader.setFloat("light.quadratic", 0.032f);
 
 		lightingShader.setVec3("light.ambient", glm::vec3(1.0f));
 		lightingShader.setVec3("light.diffuse", glm::vec3(1.0f)); // 将光照调暗了一些以搭配场景
@@ -205,8 +210,8 @@ int main() {
 		lightingShader.setMat4("view", view);
 
 		// world transformation
-		glm::mat4 model = glm::mat4(1.0f);
-		lightingShader.setMat4("model", model);
+		//glm::mat4 model = glm::mat4(1.0f);
+		//lightingShader.setMat4("model", model);
 		// bind diffuse map
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -231,20 +236,20 @@ int main() {
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 		// render the cube
-		//glBindVertexArray(cubeVAO);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(cubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		//// also draw the lamp object
-		//lampShader.use();
-		//lampShader.setMat4("projection", projection);
-		//lampShader.setMat4("view", view);
-		//model = glm::mat4(1.0f);
-		//model = glm::translate(model, lightPos);
-		//model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-		//lampShader.setMat4("model", model);
+		// also draw the lamp object
+		lampShader.use();
+		lampShader.setMat4("projection", projection);
+		lampShader.setMat4("view", view);
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+		lampShader.setMat4("model", model);
 
-		//glBindVertexArray(lightVAO);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(lightVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
