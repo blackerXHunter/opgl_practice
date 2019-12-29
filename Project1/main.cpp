@@ -42,7 +42,7 @@ float lastFrame = 0.0f; // 上一帧的时间
 int screen_width = 1600;
 int screen_height = 1000;
 
-Camera camera = Camera();
+Camera camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 
 // lighting
@@ -149,9 +149,6 @@ void Test() {
 	glm::mat4 trans2 = glm::mat4(1.0f);
 	trans2 = glm::rotate(trans2, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0f));
 	trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-
-
-	std::getchar();
 }
 
 void processInput(GLFWwindow* window)
@@ -179,7 +176,7 @@ unsigned int loadTexture(char const* path)
 	unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
 	if (data)
 	{
-		GLenum format;
+		GLenum format{};
 		if (nrComponents == 1)
 			format = GL_RED;
 		else if (nrComponents == 3)
