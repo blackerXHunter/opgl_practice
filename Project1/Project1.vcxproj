@@ -78,8 +78,8 @@
     <LibraryPath>C:\OpenGL\glad\include;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\OpenGL\glm;C:\OpenGL\glad\include;C:\OpenGL\glfw-3.3.bin.WIN32\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\OpenGL\glfw-3.3.bin.WIN32\lib-vc2019;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -136,8 +136,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\..\OpenGL\glad\src\glad.c" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>
