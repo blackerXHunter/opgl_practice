@@ -102,6 +102,13 @@ int main() {
 		// 使用着色器程序
 		// don't forget to enable shader before setting uniforms
 		modelShader.use();
+		modelShader.setVec3("viewPos", camera.get_pos());
+		modelShader.setFloat("material.shininess", 32);
+
+		modelShader.setVec3("dirLight.direction", -1.0f, -1.0f, -1.0f);
+		modelShader.setVec3("dirLight.diffuse", glm::vec3( 1.0f));
+		modelShader.setVec3("dirLight.ambient", glm::vec3(1.0f));
+		modelShader.setVec3("dirLight.specular", glm::vec3(1.0f));
 
 		// view/projection transformations
 		glm::mat4 projection = glm::perspective(glm::radians(camera.get_fov()), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
