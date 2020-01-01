@@ -30,10 +30,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(char const* path);
 
 glm::vec3 pointLightPositions[] = {
-	glm::vec3(0.7f,  0.2f,  2.0f),
-	glm::vec3(2.3f, -3.3f, -4.0f),
-	glm::vec3(-4.0f,  2.0f, -12.0f),
-	glm::vec3(0.0f,  0.0f, -3.0f)
+	glm::vec3(1.0f,  1.0f,  0.0f),
+	glm::vec3(0.0f, 1.0f, -1.0f),
+	glm::vec3(-1.0f,  1.0f, -0.2f),
+	glm::vec3(0.0f,  1.0f, -1.0f)
 };
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
@@ -44,10 +44,49 @@ int screen_height = 1000;
 
 Camera camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
+float vertices[] = {
+	-0.5f, -0.5f, -0.5f, 
+	 0.5f, -0.5f, -0.5f, 
+	 0.5f,  0.5f, -0.5f, 
+	 0.5f,  0.5f, -0.5f, 
+	-0.5f,  0.5f, -0.5f, 
+	-0.5f, -0.5f, -0.5f, 
 
-// lighting
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+	-0.5f, -0.5f,  0.5f, 
+	 0.5f, -0.5f,  0.5f, 
+	 0.5f,  0.5f,  0.5f, 
+	 0.5f,  0.5f,  0.5f, 
+	-0.5f,  0.5f,  0.5f, 
+	-0.5f, -0.5f,  0.5f, 
 
+	-0.5f,  0.5f,  0.5f, 
+	-0.5f,  0.5f, -0.5f, 
+	-0.5f, -0.5f, -0.5f, 
+	-0.5f, -0.5f, -0.5f, 
+	-0.5f, -0.5f,  0.5f, 
+	-0.5f,  0.5f,  0.5f, 
+
+	 0.5f,  0.5f,  0.5f, 
+	 0.5f,  0.5f, -0.5f, 
+	 0.5f, -0.5f, -0.5f, 
+	 0.5f, -0.5f, -0.5f, 
+	 0.5f, -0.5f,  0.5f, 
+	 0.5f,  0.5f,  0.5f, 
+
+	-0.5f, -0.5f, -0.5f, 
+	 0.5f, -0.5f, -0.5f, 
+	 0.5f, -0.5f,  0.5f, 
+	 0.5f, -0.5f,  0.5f, 
+	-0.5f, -0.5f,  0.5f, 
+	-0.5f, -0.5f, -0.5f, 
+
+	-0.5f,  0.5f, -0.5f, 
+	 0.5f,  0.5f, -0.5f, 
+	 0.5f,  0.5f,  0.5f, 
+	 0.5f,  0.5f,  0.5f, 
+	-0.5f,  0.5f,  0.5f, 
+	-0.5f,  0.5f, -0.5f
+};
 int main() {
 
 	//Test();
@@ -81,6 +120,27 @@ int main() {
 	}
 	Console();
 
+	unsigned int VBO, VAO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+	glBindVertexArray(0);
+
+
+
 	glEnable(GL_DEPTH_TEST);
 	// build and compile our shader zprogram
 // ------------------------------------ 
@@ -110,6 +170,34 @@ int main() {
 		modelShader.setVec3("dirLight.ambient", glm::vec3(1.0f));
 		modelShader.setVec3("dirLight.specular", glm::vec3(1.0f));
 
+
+		for (size_t i = 0; i < sizeof(pointLightPositions); i++)
+		{
+			std::stringstream ss;
+			ss << "pointLights[" << i << "].";
+			std::string frontStr = ss.str();
+			modelShader.setVec3(frontStr + "position", pointLightPositions[i]);
+			modelShader.setVec3(frontStr + "ambient", 0.05f, 0.05f, 0.05f);
+			modelShader.setVec3(frontStr + "diffuse", 0.8f, 0.8f, 0.8f);
+			modelShader.setVec3(frontStr + "specular", 1.0f, 1.0f, 1.0f);
+			modelShader.setFloat(frontStr + "constant", 1.0f);
+			modelShader.setFloat(frontStr + "linear", 0.09);
+			modelShader.setFloat(frontStr + "quadratic", 0.032);
+		}
+
+		modelShader.setVec3("spotLight.position", camera.get_pos());
+		modelShader.setVec3("spotLight.direction", camera.get_front());
+		modelShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+		modelShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+
+		modelShader.setFloat("spotLight.constant", 1.0f);
+		modelShader.setFloat("spotLight.linear", 0.09);
+		modelShader.setFloat("spotLight.quadratic", 0.032);
+
+		modelShader.setVec3("spotLight.ambient", glm::vec3(1.0f));
+		modelShader.setVec3("spotLight.diffuse", glm::vec3(1.0f)); // 将光照调暗了一些以搭配场景
+		modelShader.setVec3("spotLight.specular", glm::vec3(1.0f));
+
 		// view/projection transformations
 		glm::mat4 projection = glm::perspective(glm::radians(camera.get_fov()), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
 		glm::mat4 view = camera.get_view();
@@ -123,8 +211,19 @@ int main() {
 		modelShader.setMat4("model", model);
 		ourModel.Draw(modelShader);
 
+		lampShader.use();
+		for (size_t i = 0; i < sizeof(pointLightPositions); i++)
+		{
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, pointLightPositions[i]);
+			model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
+			lampShader.setMat4("projection", projection);
+			lampShader.setMat4("view", view);
+			lampShader.setMat4("model", model);
+			glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 
-		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
@@ -134,7 +233,8 @@ int main() {
 
 	// optional: de-allocate all resources once they've outlived their purpose:
 	// ------------------------------------------------------------------------
-
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
 	// 清理所有的资源并正确退出程序
 	glfwTerminate();
 	return 0;
