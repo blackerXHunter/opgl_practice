@@ -29,64 +29,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(char const* path);
 
-glm::vec3 pointLightPositions[] = {
-	glm::vec3(1.0f,  1.0f,  0.0f),
-	glm::vec3(0.0f, 1.0f, -1.0f),
-	glm::vec3(-1.0f,  1.0f, -0.2f),
-	glm::vec3(0.0f,  1.0f, -1.0f)
-};
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
 // 屏幕宽，高
-int screen_width = 1600;
-int screen_height = 1000;
+int SCR_WIDTH = 1600;
+int SCR_HEIGHT = 1000;
 
 Camera camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
-float vertices[] = {
-	-0.5f, -0.5f, -0.5f, 
-	 0.5f, -0.5f, -0.5f, 
-	 0.5f,  0.5f, -0.5f, 
-	 0.5f,  0.5f, -0.5f, 
-	-0.5f,  0.5f, -0.5f, 
-	-0.5f, -0.5f, -0.5f, 
-
-	-0.5f, -0.5f,  0.5f, 
-	 0.5f, -0.5f,  0.5f, 
-	 0.5f,  0.5f,  0.5f, 
-	 0.5f,  0.5f,  0.5f, 
-	-0.5f,  0.5f,  0.5f, 
-	-0.5f, -0.5f,  0.5f, 
-
-	-0.5f,  0.5f,  0.5f, 
-	-0.5f,  0.5f, -0.5f, 
-	-0.5f, -0.5f, -0.5f, 
-	-0.5f, -0.5f, -0.5f, 
-	-0.5f, -0.5f,  0.5f, 
-	-0.5f,  0.5f,  0.5f, 
-
-	 0.5f,  0.5f,  0.5f, 
-	 0.5f,  0.5f, -0.5f, 
-	 0.5f, -0.5f, -0.5f, 
-	 0.5f, -0.5f, -0.5f, 
-	 0.5f, -0.5f,  0.5f, 
-	 0.5f,  0.5f,  0.5f, 
-
-	-0.5f, -0.5f, -0.5f, 
-	 0.5f, -0.5f, -0.5f, 
-	 0.5f, -0.5f,  0.5f, 
-	 0.5f, -0.5f,  0.5f, 
-	-0.5f, -0.5f,  0.5f, 
-	-0.5f, -0.5f, -0.5f, 
-
-	-0.5f,  0.5f, -0.5f, 
-	 0.5f,  0.5f, -0.5f, 
-	 0.5f,  0.5f,  0.5f, 
-	 0.5f,  0.5f,  0.5f, 
-	-0.5f,  0.5f,  0.5f, 
-	-0.5f,  0.5f, -0.5f
-};
 int main() {
 
 	//Test();
@@ -101,7 +52,7 @@ int main() {
 	glfwWindowHint(GLFW_RESIZABLE, false);						    // 不可改变窗口大小
 
 	// 创建窗口(宽、高、窗口名称)
-	auto window = glfwCreateWindow(screen_width, screen_height, "Triangle", nullptr, nullptr);
+	auto window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Triangle", nullptr, nullptr);
 	if (window == nullptr) {                                        // 如果窗口创建失败，输出Failed to Create OpenGL Context
 		std::cout << "Failed to Create OpenGL Context" << std::endl;
 		glfwTerminate();
@@ -120,35 +71,106 @@ int main() {
 	}
 	Console();
 
-	unsigned int VBO, VAO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-	glBindVertexArray(VAO);
+	// configure global opengl state
+	// -----------------------------
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS); // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	// build and compile shaders
+	// -------------------------
+	Shader shader("1.depth.vs", "1.depth.fs");
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	// set up vertex data (and buffer(s)) and configure vertex attributes
+	// ------------------------------------------------------------------
+	float cubeVertices[] = {
+		// positions          // texture Coords
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};
+	float planeVertices[] = {
+		// positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
+		 5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+		-5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
+		-5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+
+		 5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+		-5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+		 5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+	};
+	// cube VAO
+	unsigned int cubeVAO, cubeVBO;
+	glGenVertexArrays(1, &cubeVAO);
+	glGenBuffers(1, &cubeVBO);
+	glBindVertexArray(cubeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
-
-	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glBindVertexArray(0);
+	// plane VAO
+	unsigned int planeVAO, planeVBO;
+	glGenVertexArrays(1, &planeVAO);
+	glGenBuffers(1, &planeVBO);
+	glBindVertexArray(planeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glBindVertexArray(0);
 
+	// load textures
+	// -------------
+	unsigned int cubeTexture = loadTexture("resources/textures/marble.jpg");
+	unsigned int floorTexture = loadTexture("resources/textures/metal.png");
 
+	// shader configuration
+	// --------------------
+	shader.use();
+	shader.setInt("texture1", 0);
 
-	glEnable(GL_DEPTH_TEST);
-	// build and compile our shader zprogram
-// ------------------------------------ 
-	Shader lightingShader("1.colors.vs", "1.colors.fs");
-	Shader lampShader("1.lamp.vs", "1.lamp.fs");
-	Shader modelShader("1.model.vs", "1.model.fs");
-
-	Model ourModel("nanosuit/nanosuit.obj");
 
 	// 渲染循环
 	while (!glfwWindowShouldClose(window)) {
@@ -160,70 +182,31 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.0f, 0.34f, 0.57f, 1.0f);
 		// 使用着色器程序
-		// don't forget to enable shader before setting uniforms
-		modelShader.use();
-		modelShader.setVec3("viewPos", camera.get_pos());
-		modelShader.setFloat("material.shininess", 32);
-
-		modelShader.setVec3("dirLight.direction", -1.0f, -1.0f, -1.0f);
-		modelShader.setVec3("dirLight.diffuse", glm::vec3( 1.0f));
-		modelShader.setVec3("dirLight.ambient", glm::vec3(1.0f));
-		modelShader.setVec3("dirLight.specular", glm::vec3(1.0f));
 
 
-		for (size_t i = 0; i < sizeof(pointLightPositions); i++)
-		{
-			std::stringstream ss;
-			ss << "pointLights[" << i << "].";
-			std::string frontStr = ss.str();
-			modelShader.setVec3(frontStr + "position", pointLightPositions[i]);
-			modelShader.setVec3(frontStr + "ambient", 0.05f, 0.05f, 0.05f);
-			modelShader.setVec3(frontStr + "diffuse", 0.8f, 0.8f, 0.8f);
-			modelShader.setVec3(frontStr + "specular", 1.0f, 1.0f, 1.0f);
-			modelShader.setFloat(frontStr + "constant", 1.0f);
-			modelShader.setFloat(frontStr + "linear", 0.09);
-			modelShader.setFloat(frontStr + "quadratic", 0.032);
-		}
-
-		modelShader.setVec3("spotLight.position", camera.get_pos());
-		modelShader.setVec3("spotLight.direction", camera.get_front());
-		modelShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-		modelShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
-
-		modelShader.setFloat("spotLight.constant", 1.0f);
-		modelShader.setFloat("spotLight.linear", 0.09);
-		modelShader.setFloat("spotLight.quadratic", 0.032);
-
-		modelShader.setVec3("spotLight.ambient", glm::vec3(1.0f));
-		modelShader.setVec3("spotLight.diffuse", glm::vec3(1.0f)); // 将光照调暗了一些以搭配场景
-		modelShader.setVec3("spotLight.specular", glm::vec3(1.0f));
-
-		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(camera.get_fov()), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
-		glm::mat4 view = camera.get_view();
-		modelShader.setMat4("projection", projection);
-		modelShader.setMat4("view", view);
-
-		// render the loaded model
+		shader.use();
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
-		modelShader.setMat4("model", model);
-		ourModel.Draw(modelShader);
-
-		lampShader.use();
-		for (size_t i = 0; i < sizeof(pointLightPositions); i++)
-		{
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, pointLightPositions[i]);
-			model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
-			lampShader.setMat4("projection", projection);
-			lampShader.setMat4("view", view);
-			lampShader.setMat4("model", model);
-			glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		glm::mat4 view = camera.get_view();
+		glm::mat4 projection = glm::perspective(glm::radians(camera.get_fov()), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		shader.setMat4("view", view);
+		shader.setMat4("projection", projection);
+		// cubes
+		glBindVertexArray(cubeVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, cubeTexture);
+		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+		shader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+		shader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		// floor
+		glBindVertexArray(planeVAO);
+		glBindTexture(GL_TEXTURE_2D, floorTexture);
+		shader.setMat4("model", glm::mat4(1.0f));
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
 
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
@@ -233,8 +216,10 @@ int main() {
 
 	// optional: de-allocate all resources once they've outlived their purpose:
 	// ------------------------------------------------------------------------
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
+	glDeleteVertexArrays(1, &cubeVAO);
+	glDeleteVertexArrays(1, &planeVAO);
+	glDeleteBuffers(1, &cubeVBO);
+	glDeleteBuffers(1, &planeVBO);
 	// 清理所有的资源并正确退出程序
 	glfwTerminate();
 	return 0;
