@@ -75,14 +75,22 @@ int main() {
 	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	//glEnable(GL_STENCIL_TEST);
+	//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	// build and compile shaders
 	// -------------------------
 	Shader shader("1.stencil.vs", "1.stencil.fs");
 	Shader shaderSingleColor("1.stencil.vs", "1.shaderSingleColor.fs");
-	
+
+	// grass pos;
+	vector<glm::vec3> vegetation;
+	vegetation.push_back(glm::vec3(-1.5f, 0.0f, -0.48f));
+	vegetation.push_back(glm::vec3(1.5f, 0.0f, 0.51f));
+	vegetation.push_back(glm::vec3(0.0f, 0.0f, 0.7f));
+	vegetation.push_back(glm::vec3(-0.3f, 0.0f, -2.3f));
+	vegetation.push_back(glm::vec3(0.5f, 0.0f, -0.6f));
+
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
 	float cubeVertices[] = {
@@ -129,6 +137,17 @@ int main() {
 		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
+
+	float vegetationVertices[] = {
+		0.5f, 0.5f, 0.0f,	0.0f, 0.0f,
+		-0.5f, 0.5f, 0.0f,	1.0f, 0.0f,
+		-0.5f, -0.5f, 0.0f, 1.0f, 1.0f,
+		-0.5f, -0.5f, 0.0f, 1.0f, 1.0f,
+		0.5f, 0.5f, 0.0f,   0.0f, 0.0f,
+		0.5f, -0.5f, 0.0f,  0.0f, 1.0f
+
+	};
+
 	float planeVertices[] = {
 		// positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
 		 5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
@@ -164,10 +183,25 @@ int main() {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glBindVertexArray(0);
 
+	// grass VAO
+	unsigned int vegetationVAO, vegetationVBO;
+	glGenVertexArrays(1, &vegetationVAO);
+	glGenBuffers(1, &vegetationVBO);
+	glBindVertexArray(vegetationVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, vegetationVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vegetationVertices), &vegetationVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glBindVertexArray(0);
+
 	// load textures
 	// -------------
 	unsigned int cubeTexture = loadTexture("resources/textures/marble.jpg");
 	unsigned int floorTexture = loadTexture("resources/textures/metal.png");
+	unsigned int grassTexture = loadTexture("resources/textures/grass.png");
+
 
 	// shader configuration
 	// --------------------
@@ -182,7 +216,7 @@ int main() {
 		lastFrame = currentFrame;
 
 		processInput(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT| GL_STENCIL_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		glClearColor(0.0f, 0.34f, 0.57f, 1.0f);
 		// 使用着色器程序
 
@@ -203,6 +237,18 @@ int main() {
 		glBindVertexArray(0);
 
 
+		// grass
+
+		glBindVertexArray(vegetationVAO);
+		glBindTexture(GL_TEXTURE_2D, grassTexture);
+		for (unsigned int i = 0; i < vegetation.size(); i++)
+		{
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, vegetation[i]);
+			shader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+
 		// cubes 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
@@ -220,29 +266,29 @@ int main() {
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// draw scale cubes
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
-		glDisable(GL_DEPTH_TEST);
-		shaderSingleColor.use();
-		float scale = 1.01f;
+		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		//glStencilMask(0x00);
+		//glDisable(GL_DEPTH_TEST);
+		//shaderSingleColor.use();
+		//float scale = 1.01f;
 
-		shaderSingleColor.setMat4("view", view);
-		shaderSingleColor.setMat4("projection", projection);
+		//shaderSingleColor.setMat4("view", view);
+		//shaderSingleColor.setMat4("projection", projection);
 
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-		model = glm::scale(model, glm::vec3(scale));
-		shaderSingleColor.setMat4("model", model);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//model = glm::mat4(1.0f);
+		//model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+		//model = glm::scale(model, glm::vec3(scale));
+		//shaderSingleColor.setMat4("model", model);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(scale));
-		shaderSingleColor.setMat4("model", model);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//model = glm::mat4(1.0f);
+		//model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+		//model = glm::scale(model, glm::vec3(scale));
+		//shaderSingleColor.setMat4("model", model);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		glStencilMask(0xFF);
-		glEnable(GL_DEPTH_TEST);
+		//glStencilMask(0xFF);
+		//glEnable(GL_DEPTH_TEST);
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
 		glfwSwapBuffers(window);
@@ -315,8 +361,17 @@ unsigned int loadTexture(char const* path)
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		if (format == GL_RGBA)
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		}
+		else
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		}
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
