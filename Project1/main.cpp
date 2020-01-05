@@ -30,10 +30,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(char const* path);
 
 glm::vec3 pointLightPositions[] = {
-	glm::vec3(1.0f,  1.0f,  0.0f),
+	glm::vec3(1.0f,  1.0f,  -1.0f),
 	glm::vec3(0.0f, 1.0f, -1.0f),
-	glm::vec3(-1.0f,  1.0f, -0.2f),
-	glm::vec3(0.0f,  1.0f, -1.0f)
+	glm::vec3(-1.0f,  1.0f, -1.2f),
+	glm::vec3(0.0f,  1.0f, -2.0f)
 };
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
@@ -119,6 +119,11 @@ int main() {
 		return -1;
 	}
 	Console();
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	unsigned int VBO, VAO;
 	glGenVertexArrays(1, &VAO);
@@ -141,12 +146,12 @@ int main() {
 
 
 
-	glEnable(GL_DEPTH_TEST);
 	// build and compile our shader zprogram
 // ------------------------------------ 
 	Shader lightingShader("1.colors.vs", "1.colors.fs");
 	Shader lampShader("1.lamp.vs", "1.lamp.fs");
 	Shader modelShader("1.model.vs", "1.model.fs");
+	Shader colorShandingShader("1.model.vs", "colorShadingShader.fs");
 
 	Model ourModel("nanosuit/nanosuit.obj");
 
@@ -157,10 +162,36 @@ int main() {
 		lastFrame = currentFrame;
 
 		processInput(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(0.0f, 0.34f, 0.57f, 1.0f);
-		// 使用着色器程序
-		// don't forget to enable shader before setting uniforms
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+
+		// mvp
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.get_fov()), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
+		glm::mat4 view = camera.get_view();
+
+		// draw light cubes
+		glStencilMask(0x00);
+
+		lampShader.use();
+		for (size_t i = 0; i < sizeof(pointLightPositions) / sizeof(glm::vec3); i++)
+		{
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, pointLightPositions[i]);
+			model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
+			lampShader.setMat4("projection", projection);
+			lampShader.setMat4("view", view);
+			lampShader.setMat4("model", model);
+			glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
+
+		// draw models
+		// 
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 		modelShader.use();
 		modelShader.setVec3("viewPos", camera.get_pos());
 		modelShader.setFloat("material.shininess", 32);
@@ -171,7 +202,7 @@ int main() {
 		modelShader.setVec3("dirLight.specular", glm::vec3(1.0f));
 
 
-		for (size_t i = 0; i < sizeof(pointLightPositions); i++)
+		for (size_t i = 0; i < (sizeof(pointLightPositions) / sizeof(glm::vec3)); i++)
 		{
 			std::stringstream ss;
 			ss << "pointLights[" << i << "].";
@@ -198,33 +229,32 @@ int main() {
 		modelShader.setVec3("spotLight.diffuse", glm::vec3(1.0f)); // 将光照调暗了一些以搭配场景
 		modelShader.setVec3("spotLight.specular", glm::vec3(1.0f));
 
-		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(camera.get_fov()), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
-		glm::mat4 view = camera.get_view();
+
 		modelShader.setMat4("projection", projection);
 		modelShader.setMat4("view", view);
 
-		// render the loaded model
-		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
 		modelShader.setMat4("model", model);
 		ourModel.Draw(modelShader);
 
-		lampShader.use();
-		for (size_t i = 0; i < sizeof(pointLightPositions); i++)
-		{
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, pointLightPositions[i]);
-			model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
-			lampShader.setMat4("projection", projection);
-			lampShader.setMat4("view", view);
-			lampShader.setMat4("model", model);
-			glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+		// draw outline
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glDisable(GL_DEPTH_TEST);
+		colorShandingShader.use();
+		colorShandingShader.setMat4("projection", projection);
+		colorShandingShader.setMat4("view", view);
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.201f));
+		colorShandingShader.setMat4("model", model);
+		ourModel.Draw(colorShandingShader);
 
+		glStencilMask(0xFF);
+		glEnable(GL_DEPTH_TEST);
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
 		glfwSwapBuffers(window);
