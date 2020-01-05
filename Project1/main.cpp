@@ -75,6 +75,8 @@ int main() {
 	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glEnable(GL_STENCIL_TEST);
 	//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -201,6 +203,7 @@ int main() {
 	unsigned int cubeTexture = loadTexture("resources/textures/marble.jpg");
 	unsigned int floorTexture = loadTexture("resources/textures/metal.png");
 	unsigned int grassTexture = loadTexture("resources/textures/grass.png");
+	unsigned int windowTexture = loadTexture("resources/textures/window.png");
 
 
 	// shader configuration
@@ -228,7 +231,7 @@ int main() {
 		shader.setMat4("projection", projection);
 
 		// floor
-		glStencilMask(0x00); // 记得保证我们在绘制地板的时候不会更新模板缓冲
+		//glStencilMask(0x00); // 记得保证我们在绘制地板的时候不会更新模板缓冲
 
 		glBindVertexArray(planeVAO);
 		glBindTexture(GL_TEXTURE_2D, floorTexture);
@@ -237,21 +240,10 @@ int main() {
 		glBindVertexArray(0);
 
 
-		// grass
-
-		glBindVertexArray(vegetationVAO);
-		glBindTexture(GL_TEXTURE_2D, grassTexture);
-		for (unsigned int i = 0; i < vegetation.size(); i++)
-		{
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, vegetation[i]);
-			shader.setMat4("model", model);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-		}
 
 		// cubes 
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
+		//glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		//glStencilMask(0xFF);
 
 		glBindVertexArray(cubeVAO);
 		glActiveTexture(GL_TEXTURE0);
@@ -265,6 +257,22 @@ int main() {
 		shader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
+		// window
+		std::map<float, glm::vec3> sorted;
+		for (unsigned int i = 0; i < vegetation.size(); i++)
+		{
+			float distance = glm::length(camera.get_pos() - vegetation[i]);
+			sorted[distance] = vegetation[i];
+		}
+		glBindVertexArray(vegetationVAO);
+		glBindTexture(GL_TEXTURE_2D, windowTexture);
+		for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it)
+		{
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, it->second);
+			shader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
 		// draw scale cubes
 		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		//glStencilMask(0x00);
