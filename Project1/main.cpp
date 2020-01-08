@@ -201,11 +201,14 @@ int main() {
 // ------------------------------------ 
 	Shader lightingShader("1.colors.vs", "1.colors.fs");
 	Shader lampShader("1.lamp.vs", "1.lamp.fs");
-	Shader modelShader("1.model.vs", "1.model.fs");
-	Shader colorShandingShader("1.model.vs", "colorShadingShader.fs");
+	Shader modelShader("shader/model.vs", "shader/model.fs");
+	Shader colorShandingShader("shader/model.vs", "colorShadingShader.fs");
 	Shader skyboxShader("shader/skybox.vs", "shader/skybox.fs");
 	skyboxShader.use();
 	skyboxShader.setInt("skybox", 0);
+
+	modelShader.use();
+	modelShader.setInt("skybox", 5);
 
 	vector<std::string> faces
 	{
@@ -303,6 +306,25 @@ int main() {
 		modelShader.setMat4("model", model);
 		ourModel.Draw(modelShader);
 
+		// draw outline
+		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		//glStencilMask(0x00);
+		//glDisable(GL_DEPTH_TEST);
+		//view = camera.get_view();
+		//colorShandingShader.use();
+		//colorShandingShader.setMat4("projection", projection);
+		//colorShandingShader.setMat4("view", view);
+
+		//model = glm::mat4(1.0f);
+		//model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+		//model = glm::scale(model, glm::vec3(0.201f));
+		//colorShandingShader.setMat4("model", model);
+		//ourModel.Draw(colorShandingShader);
+
+		//glStencilMask(0xFF);
+		//glEnable(GL_DEPTH_TEST);
+
+
 		// skybox cube
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		skyboxShader.use();
@@ -310,29 +332,12 @@ int main() {
 		skyboxShader.setMat4("view", view);
 		skyboxShader.setMat4("projection", projection);
 		glBindVertexArray(skyboxVAO);
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE5);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		glDepthFunc(GL_LESS); // set depth function back to default
 
-		// draw outline
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
-		glDisable(GL_DEPTH_TEST);
-		view = camera.get_view();
-		colorShandingShader.use();
-		colorShandingShader.setMat4("projection", projection);
-		colorShandingShader.setMat4("view", view);
-
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.201f));
-		colorShandingShader.setMat4("model", model);
-		ourModel.Draw(colorShandingShader);
-
-		glStencilMask(0xFF);
-		glEnable(GL_DEPTH_TEST);
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
 		glfwSwapBuffers(window);

@@ -5,9 +5,12 @@ in vec3 Normal;
 in vec3 FragPos;
 in vec2 TexCoords;
 
+uniform samplerCube skybox;
+
 struct Material {
     sampler2D texture_diffuse1;
     sampler2D texture_specular1;
+    sampler2D texture_reflection1;
     //sampler2D texture_emission1;
     float shininess;
 };
@@ -73,10 +76,18 @@ void main()
         result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);    
     }
     // 第三阶段：聚光
-    result += CalcSpotLight(spotLight, norm, FragPos, viewDir);    
+    result += CalcSpotLight(spotLight, norm, FragPos, viewDir); 
 
+    vec3 reflectMap = vec3(texture(material.texture_specular1, TexCoords));
+
+    float ratio = 1.00 / 1.52;   
+    vec3 I = normalize(FragPos - viewPos);
+    vec3 R = reflect(I, normalize(Normal));
+    //vec3 R = refract(I, normalize(Normal), ratio);
+    result += vec3(texture(skybox, R)) * reflectMap;
+
+    //FragColor = vec4(Rresult + vec3(result.r,100,100), 1.0);
     FragColor = vec4(result, 1.0);
-    //FragColor = vec4(1.0f);
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
