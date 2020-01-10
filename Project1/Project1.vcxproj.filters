@@ -61,5 +61,11 @@
     <None Include="1.colors.fs">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="point.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="point.fs">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

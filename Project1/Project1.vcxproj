@@ -153,6 +153,8 @@
     <None Include="1.colors.vs" />
     <None Include="1.lamp.fs" />
     <None Include="1.lamp.vs" />
+    <None Include="point.fs" />
+    <None Include="point.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
