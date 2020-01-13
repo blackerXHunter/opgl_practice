@@ -118,12 +118,12 @@ int main() {
 		modelShader.setVec3("spotLight.diffuse", glm::vec3(1.0f)); // 将光照调暗了一些以搭配场景
 		modelShader.setVec3("spotLight.specular", glm::vec3(1.0f));
 
-		auto projection = glm::perspective((float)(SCR_WIDTH / SCR_HEIGHT), camera.get_fov(), 0.1f, 1000.0f);
+		auto projection = glm::perspective(camera.get_fov(), (float)(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
 		auto view = camera.get_view();
-			modelShader.setMat4("projection", projection);
+		modelShader.setMat4("projection", projection);
 		modelShader.setMat4("view", view);
 
-	    auto model = glm::mat4(1.0f);
+		auto model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
 		modelShader.setMat4("model", model);
