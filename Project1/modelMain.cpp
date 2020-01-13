@@ -45,7 +45,8 @@ int main() {
 	// build and compile shaders
 	// -------------------------
 	Shader shader("shader/model/model_g.vs", "shader/model/model_g.gs", "shader/model/model_g.fs");
-	//Shader shader("shader/model/model_g.vs", "shader/model/model_g.fs");
+	Shader normalShader("shader/model/normal_visualization.vs", "shader/model/normal_visualization.gs", "shader/model/normal_visualization.fs");
+
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
@@ -132,6 +133,12 @@ int main() {
 		shader.setMat4("model", model);
 		ourModel.Draw(shader);
 
+		normalShader.use();
+		normalShader.setMat4("projection", projection);
+		normalShader.setMat4("view", view);
+		normalShader.setMat4("model", model);
+
+		ourModel.Draw(normalShader);
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
 		glfwSwapBuffers(window);
