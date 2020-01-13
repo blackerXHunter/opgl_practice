@@ -44,8 +44,8 @@ int main() {
 
 	// build and compile shaders
 	// -------------------------
-	//Shader shader("shader/model/model_g.vs", "shader/model/model_g.gs", "shader/model/model_g.fs");
-	Shader shader("shader/model/model_g.vs",  "shader/model/model_g.fs");
+	//Shader modelShader("shader/model/model_g.vs", "shader/model/model_g.gs", "shader/model/model_g.fs");
+	Shader modelShader("shader/model/model_g.vs", "shader/model/model_g.fs");
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
@@ -57,10 +57,10 @@ int main() {
 	};
 
 	// points vao
-	Model model("nanosuit/nanosuit.obj");
+	Model ourModel("nanosuit/nanosuit.obj");
 	// load textures
 	// -------------
-	
+
 
 	// shader configuration
 	// --------------------
@@ -77,8 +77,58 @@ int main() {
 		// make sure we clear the framebuffer's content
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// draw scene as normal
-		model.Draw(shader);
+		// draw models
+		// 
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+		modelShader.use();
+		modelShader.setVec3("viewPos", camera.get_pos());
+		modelShader.setFloat("material.shininess", 32);
+
+		modelShader.setVec3("dirLight.direction", -1.0f, -1.0f, -1.0f);
+		modelShader.setVec3("dirLight.diffuse", glm::vec3(1.0f));
+		modelShader.setVec3("dirLight.ambient", glm::vec3(1.0f));
+		modelShader.setVec3("dirLight.specular", glm::vec3(1.0f));
+
+
+		//for (size_t i = 0; i < (sizeof(pointLightPositions) / sizeof(glm::vec3)); i++)
+		//{
+		//	std::stringstream ss;
+		//	ss << "pointLights[" << i << "].";
+		//	std::string frontStr = ss.str();
+		//	modelShader.setVec3(frontStr + "position", pointLightPositions[i]);
+		//	modelShader.setVec3(frontStr + "ambient", 0.05f, 0.05f, 0.05f);
+		//	modelShader.setVec3(frontStr + "diffuse", 0.8f, 0.8f, 0.8f);
+		//	modelShader.setVec3(frontStr + "specular", 1.0f, 1.0f, 1.0f);
+		//	modelShader.setFloat(frontStr + "constant", 1.0f);
+		//	modelShader.setFloat(frontStr + "linear", 0.09);
+		//	modelShader.setFloat(frontStr + "quadratic", 0.032);
+		//}
+
+		modelShader.setVec3("spotLight.position", camera.get_pos());
+		modelShader.setVec3("spotLight.direction", camera.get_front());
+		modelShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+		modelShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+
+		modelShader.setFloat("spotLight.constant", 1.0f);
+		modelShader.setFloat("spotLight.linear", 0.09);
+		modelShader.setFloat("spotLight.quadratic", 0.032);
+
+		modelShader.setVec3("spotLight.ambient", glm::vec3(1.0f));
+		modelShader.setVec3("spotLight.diffuse", glm::vec3(1.0f)); // 将光照调暗了一些以搭配场景
+		modelShader.setVec3("spotLight.specular", glm::vec3(1.0f));
+
+		auto projection = glm::perspective((float)(SCR_WIDTH / SCR_HEIGHT), camera.get_fov(), 0.1f, 1000.0f);
+		auto view = camera.get_view();
+			modelShader.setMat4("projection", projection);
+		modelShader.setMat4("view", view);
+
+	    auto model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+		modelShader.setMat4("model", model);
+		ourModel.Draw(modelShader);
+
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
 		glfwSwapBuffers(window);
