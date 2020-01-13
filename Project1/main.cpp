@@ -78,86 +78,27 @@ int main() {
 
 	// build and compile shaders
 	// -------------------------
-	Shader redShader("shader/uniform.vs", "shader/red.fs");
-	Shader greenShader("shader/uniform.vs", "shader/green.fs");
-	Shader blueShader("shader/uniform.vs", "shader/blue.fs");
-	Shader whiteShader("shader/uniform.vs", "shader/white.fs");
+	Shader shader("shader/geometry.vs", "shader/geometry.gs", "shader/geometry.fs");
 
-	unsigned int uniformBlockIndexRed = glGetUniformBlockIndex(redShader.ID, "Matrices");
-	unsigned int uniformBlockIndexGreen = glGetUniformBlockIndex(greenShader.ID, "Matrices");
-	unsigned int uniformBlockIndexBlue = glGetUniformBlockIndex(blueShader.ID, "Matrices");
-	unsigned int uniformBlockIndexWhite = glGetUniformBlockIndex(whiteShader.ID, "Matrices");
-
-	glUniformBlockBinding(redShader.ID, uniformBlockIndexRed, 0);
-	glUniformBlockBinding(greenShader.ID, uniformBlockIndexGreen, 0);
-	glUniformBlockBinding(blueShader.ID, uniformBlockIndexBlue, 0);
-	glUniformBlockBinding(whiteShader.ID, uniformBlockIndexWhite, 0);
-
-
-	unsigned int uboMatrices;
-	glGenBuffers(1, &uboMatrices);
-
-	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
-	float cubeVertices[] = {
-		// positions         
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		-0.5f,  0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-
-		-0.5f, -0.5f,  0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-		-0.5f, -0.5f,  0.5f,
-
-		-0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f,  0.5f,
-		 0.5f, -0.5f,  0.5f,
-		-0.5f, -0.5f,  0.5f,
-		-0.5f, -0.5f, -0.5f,
-
-		-0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f, -0.5f,
-		 0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f,
-		-0.5f,  0.5f, -0.5f,
+	float pointsVertices[] = {
+	 -0.5f,  0.5f, // 左上
+	 0.5f,  0.5f, // 右上
+	 0.5f, -0.5f, // 右下
+	 -0.5f, -0.5f  // 左下
 	};
-	// cube VAO
-	unsigned int cubeVAO, cubeVBO;
-	glGenVertexArrays(1, &cubeVAO);
-	glGenBuffers(1, &cubeVBO);
-	glBindVertexArray(cubeVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
+	// points vao
+	unsigned VAO, VBO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(pointsVertices), pointsVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
 	// load textures
 	// -------------
 
@@ -179,47 +120,9 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// draw scene as normal
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.get_fov()),
-			(float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
-		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		glm::mat4 view = camera.get_view();
-		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-		redShader.use();
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-0.75f, -0.75f, 0.0f)); // move bottom-left
-		redShader.setMat4("model", model);
-		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-
-		greenShader.use();
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.75f, -0.75f, 0.0f)); // move bottom-left
-		greenShader.setMat4("model", model);
-		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-
-		blueShader.use();
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-0.75f, 0.75f, 0.0f)); // move bottom-left
-		blueShader.setMat4("model", model);
-		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-
-		whiteShader.use();
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.75f, 0.75f, 0.0f)); // move bottom-left
-		whiteShader.setMat4("model", model);
-		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
+		shader.use();
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_POINTS, 0, 4);
 
 		// 交换缓冲并且检查是否有触发事件(比如键盘输入、鼠标移动等）
 		glfwSwapBuffers(window);
@@ -228,8 +131,7 @@ int main() {
 
 	// optional: de-allocate all resources once they've outlived their purpose:
 	// ------------------------------------------------------------------------
-	glDeleteVertexArrays(1, &cubeVAO);
-	glDeleteBuffers(1, &cubeVBO);
+
 	// 清理所有的资源并正确退出程序
 	glfwTerminate();
 	return 0;
