@@ -25,16 +25,14 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(char const* path);
 unsigned int loadCubeMap(vector<string> faces);
 
-float deltaTime = 0.0f; // µ±Ç°Ö¡ÓëÉÏÒ»Ö¡µÄÊ±¼ä²î
-float lastFrame = 0.0f; // ÉÏÒ»Ö¡µÄÊ±¼ä
+float deltaTime = 0.0f; // å½“å‰å¸§ä¸ä¸Šä¸€å¸§çš„æ—¶é—´å·®
+float lastFrame = 0.0f; // ä¸Šä¸€å¸§çš„æ—¶é—´
 
-// ÆÁÄ»¿í£¬¸ß
+// å±å¹•å®½ï¼Œé«˜
 int SCR_WIDTH = 1600;
 int SCR_HEIGHT = 1000;
 
-Camera camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
-
-
+Camera camera(glm::vec3(0.0f, 0.0f, 155.0f));
 void Console() {
 	int nrAttributes;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
