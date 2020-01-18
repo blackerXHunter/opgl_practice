@@ -32,7 +32,7 @@ float lastFrame = 0.0f; // 上一帧的时间
 int SCR_WIDTH = 1600;
 int SCR_HEIGHT = 1000;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 155.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 void Console() {
 	int nrAttributes;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
