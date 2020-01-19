@@ -3,7 +3,15 @@
 void Camera::processInput(GLFWwindow* window, float deltaTime)
 {
 	glm::vec3 camera_front = get_front();
-	glm::vec3 myFront = glm::vec3(camera_front.x, 0.0f, camera_front.z);
+	glm::vec3 myFront = glm::vec3(0.0);
+	if (locked_plane)
+	{
+		myFront = glm::vec3(camera_front.x, 0.0f, camera_front.z);
+	}
+	else
+	{
+		myFront = camera_front;
+	}
 	float cameraSpeed = 2.5f * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera_pos += cameraSpeed * myFront;
@@ -28,13 +36,13 @@ void Camera::mouse_callback(GLFWwindow* window, float xpos, float ypos)
 	float yoffset = lastY - ypos; // 注意这里是相反的，因为y坐标是从底部往顶部依次增大的
 	lastX = xpos;
 	lastY = ypos;
-	
+
 	xoffset *= mouse_sensitivity;
 	yoffset *= mouse_sensitivity;
 
 	yaw += xoffset;
 	pitch += yoffset;
-	
+
 	if (pitch > 89.0f)
 		pitch = 89.0f;
 	if (pitch < -89.0f)
@@ -57,6 +65,11 @@ void Camera::scroll_callback(GLFWwindow* window, float xoffset, float yoffset)
 glm::vec3 Camera::get_front() const
 {
 	return camera_front;
+}
+
+void Camera::lock_plane(bool locked)
+{
+	this->locked_plane = locked;
 }
 
 glm::mat4 Camera::get_view()

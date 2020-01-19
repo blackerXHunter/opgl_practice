@@ -33,7 +33,7 @@ public:
 	float get_fov() const;
 	glm::vec3 get_pos() const;
 	glm::vec3 get_front() const;
-
+	void lock_plane(bool locked);
 private:
 
 	glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -49,7 +49,7 @@ private:
 
 	float lastX = 400, lastY = 300;
 	bool firstMouse = true;
-
+	bool locked_plane = true;
 	void updateCameraVectors() {
 		// Calculate the new Front vector
 		glm::vec3 front;
