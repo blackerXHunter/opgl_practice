@@ -57,7 +57,6 @@ Shader "Custom/C7-RampTexture" {
 				fixed3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
 				fixed3 halfDir = normalize(viewDir + worldLightDir);
 				fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(max(0, dot(worldNormal, halfDir)), _Gloss);
-
 				return fixed4(ambient + diffuse + specular, 1.0);
 			}
 

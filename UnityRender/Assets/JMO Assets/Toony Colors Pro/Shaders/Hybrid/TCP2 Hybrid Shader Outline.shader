@@ -16,6 +16,8 @@ Shader "Toony Colors Pro 2/Hybrid Shader Outline"
 	//# Base
 		[MainColor] _BaseColor ("Color", Color) = (1,1,1,1)
 		[MainTex] _BaseMap ("Albedo", 2D) = "white" {}
+		_HighLightMap("HighLight Map", 2D) = "white" {}
+		_ShadowMap("Shadow Map", 2D) = "black" {}
 		[TCP2ColorNoAlpha] _HColor ("Highlight Color", Color) = (1,1,1,1)
 		[TCP2ColorNoAlpha] _SColor ("Shadow Color", Color) = (0.2,0.2,0.2,1)
 		[Toggle(TCP2_SHADOW_TEXTURE)] _UseShadowTexture ("Enable Shadow Albedo Texture", Float) = 0
