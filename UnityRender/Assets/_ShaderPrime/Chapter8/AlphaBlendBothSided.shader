@@ -132,5 +132,6 @@ Shader "Custom/AlphaBlend" {
 
 
 	}
-	FallBack "Transparent/VertexLit"
+	//FallBack "Transparent/VertexLit"
+	FallBack "VertexLit"
 }
