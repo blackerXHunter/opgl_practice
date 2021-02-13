@@ -4,8 +4,9 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: RefractionMat
   m_Shader: {fileID: 4800000, guid: a0eb6e0c920885840aa8698cbf6356f2, type: 3}
   m_ShaderKeywords: 
@@ -23,7 +24,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Cubemap:
-        m_Texture: {fileID: 8900000, guid: 25ad613834407ed428ed2423fa1b204b, type: 2}
+        m_Texture: {fileID: 8900000, guid: e01038876e741c941bcf94f2c090431b, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -70,14 +71,15 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _RefractAmount: 1
-    - _RefractRatio: 0.1
+    - _RefractAmount: 0.514
+    - _RefractRatio: 0.897
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.01886791, g: 0.018440712, b: 0.018440712, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _RefractColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RefractColor: {r: 0.8962264, g: 0.48700607, b: 0.48700607, a: 1}
+  m_BuildTextureStacks: []
