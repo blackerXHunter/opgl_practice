@@ -9,66 +9,66 @@
 	SubShader {
 		Tags { "RenderType"="Opaque" "Queue"="Geometry"}
 		// Pass { 
-		// 	Tags { "LightMode"="ForwardBase" }
+			// 	Tags { "LightMode"="ForwardBase" }
 			
-		// 	CGPROGRAM
+			// 	CGPROGRAM
 			
-		// 	#pragma vertex vert
-		// 	#pragma fragment frag
+			// 	#pragma vertex vert
+			// 	#pragma fragment frag
 			
-		// 	#include "UnityCG.cginc"
+			// 	#include "UnityCG.cginc"
 			
-		// 	sampler2D _MainTex;
-		// 	sampler2D _DetailTex;
-		// 	float4 _MainTex_ST;
-		// 	float4 _DetailTex_ST;
-		// 	float _ScrollX;
-		// 	float _Scroll2X;
-		// 	float _Multiplier;
+			// 	sampler2D _MainTex;
+			// 	sampler2D _DetailTex;
+			// 	float4 _MainTex_ST;
+			// 	float4 _DetailTex_ST;
+			// 	float _ScrollX;
+			// 	float _Scroll2X;
+			// 	float _Multiplier;
 			
-		// 	struct a2v {
-		// 		float4 vertex : POSITION;
-		// 		float4 texcoord : TEXCOORD0;
-		// 	};
+			// 	struct a2v {
+				// 		float4 vertex : POSITION;
+				// 		float4 texcoord : TEXCOORD0;
+			// 	};
 			
-		// 	struct v2f {
-		// 		float4 pos : SV_POSITION;
-		// 		float4 uv : TEXCOORD0;
-		// 	};
+			// 	struct v2f {
+				// 		float4 pos : SV_POSITION;
+				// 		float4 uv : TEXCOORD0;
+			// 	};
 			
-		// 	v2f vert (a2v v) {
-		// 		v2f o;
-		// 		o.pos = UnityObjectToClipPos(v.vertex);
+			// 	v2f vert (a2v v) {
+				// 		v2f o;
+				// 		o.pos = UnityObjectToClipPos(v.vertex);
 				
-		// 		o.uv.xy = TRANSFORM_TEX(v.texcoord, _MainTex) + frac(float2(_ScrollX, 0.0) * _Time.y);
-		// 		o.uv.zw = TRANSFORM_TEX(v.texcoord, _DetailTex) + frac(float2(_Scroll2X, 0.0) * _Time.y);
+				// 		o.uv.xy = TRANSFORM_TEX(v.texcoord, _MainTex) + frac(float2(_ScrollX, 0.0) * _Time.y);
+				// 		o.uv.zw = TRANSFORM_TEX(v.texcoord, _DetailTex) + frac(float2(_Scroll2X, 0.0) * _Time.y);
 				
-		// 		return o;
-		// 	}
+				// 		return o;
+			// 	}
 			
-		// 	fixed4 frag (v2f i) : SV_Target {
-		// 		fixed4 firstLayer = tex2D(_MainTex, i.uv.xy);
-		// 		fixed4 secondLayer = tex2D(_DetailTex, i.uv.zw);
+			// 	fixed4 frag (v2f i) : SV_Target {
+				// 		fixed4 firstLayer = tex2D(_MainTex, i.uv.xy);
+				// 		fixed4 secondLayer = tex2D(_DetailTex, i.uv.zw);
 				
-		// 		fixed4 c = lerp(firstLayer, secondLayer, secondLayer.a);
-		// 		c.rgb *= _Multiplier;
+				// 		fixed4 c = lerp(firstLayer, secondLayer, secondLayer.a);
+				// 		c.rgb *= _Multiplier;
 				
-		// 		return c;
-		// 	}
+				// 		return c;
+			// 	}
 			
-		// 	ENDCG
+			// 	ENDCG
 		// }
 
 
 		Pass{
-		Tags { "LightMode"="ForwardBase" }
+			Tags { "LightMode"="ForwardBase" }
 			
-		CGPROGRAM
+			CGPROGRAM
 
 
-		#pragma vertex vert
-		#pragma fragment frag
-		#include "UnityCG.cginc"
+			#pragma vertex vert
+			#pragma fragment frag
+			#include "UnityCG.cginc"
 			
 			sampler2D _MainTex;
 			sampler2D _DetailTex;
@@ -77,15 +77,15 @@
 			float _ScrollX;
 			float _Scroll2X;
 			float _Multiplier;
-		// struct a2v {
-		// 	float3 vertex : POSITION;
-		// 	float4 texcoord : TEXCOORD0;
-		// };
+			// struct a2v {
+				// 	float3 vertex : POSITION;
+				// 	float4 texcoord : TEXCOORD0;
+			// };
 
-		// struct v2f {
-		// 	float3 pos : SV_POSITION;
-		// 	float4 uv :TEXCOORD0;
-		// };
+			// struct v2f {
+				// 	float3 pos : SV_POSITION;
+				// 	float4 uv :TEXCOORD0;
+			// };
 
 			struct a2v {
 				float4 vertex : POSITION;
@@ -96,24 +96,24 @@
 				float4 pos : SV_POSITION;
 				float4 uv : TEXCOORD0;
 			};
-		
-		v2f vert(a2v v){
-			v2f o;
-			o.pos = UnityObjectToClipPos(v.vertex);
-			o.uv.xy = TRANSFORM_TEX(v.texcoord, _MainTex) + frac(float2(_ScrollX, 0.0)*_Time.y);
-			o.uv.zw = TRANSFORM_TEX(v.texcoord, _DetailTex) + frac(float2(_Scroll2X, 0.0)* _Time.y);
-			return o;
-		}
+			
+			v2f vert(a2v v){
+				v2f o;
+				o.pos = UnityObjectToClipPos(v.vertex);
+				o.uv.xy = TRANSFORM_TEX(v.texcoord, _MainTex) + frac(float2(_ScrollX, 0.0)*_Time.y);
+				o.uv.zw = TRANSFORM_TEX(v.texcoord, _DetailTex) + frac(float2(_Scroll2X, 0.0)* _Time.y);
+				return o;
+			}
 
-		fixed4 frag(v2f i) :SV_Target{
-			fixed4 firstLayer = tex2D(_MainTex, i.uv.xy);
-			fixed4 secondLayer = tex2D(_DetailTex, i.uv.zw);
-			fixed4 c = lerp(firstLayer, secondLayer, secondLayer.a);
-			c.rgb *= _Multiplier;
-			return c;
-		}
+			fixed4 frag(v2f i) :SV_Target{
+				fixed4 firstLayer = tex2D(_MainTex, i.uv.xy);
+				fixed4 secondLayer = tex2D(_DetailTex, i.uv.zw);
+				fixed4 c = lerp(firstLayer, secondLayer, secondLayer.a);
+				c.rgb *= _Multiplier;
+				return c;
+			}
 
-		ENDCG
+			ENDCG
 		}
 	}
 	FallBack "Diffuse"
